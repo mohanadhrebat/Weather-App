@@ -14,12 +14,13 @@ class Weather {
   });
 
   factory Weather.fromJson(Map<String, dynamic> json) {
-    return Weather(
-      cityName: json["location"]["name"],
-      temperature: json["current"]["temp_c"].toDouble(),
-      conditionText: json["current"]["condition"]["text"],
-      iconUrl: "https:${json["current"]["condition"]["icon"]}",
-      lastUpdated: json["current"]["last_updated"],
-    );
+  return Weather(
+    cityName: json["location"]["name"],
+    temperature: json["current"]["temp_c"].toDouble(),
+    conditionText: json["current"]["condition"]["text"],
+    iconUrl: "https:${json["current"]["condition"]["icon"]}"
+        .replaceAll("64x64", "128x128"),
+    lastUpdated: json["current"]["last_updated"],
+  );
   }
 }

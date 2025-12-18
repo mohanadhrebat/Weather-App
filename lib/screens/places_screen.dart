@@ -76,7 +76,9 @@ class _PlacesScreenState extends State<PlacesScreen> {
                 margin: const EdgeInsets.all(10),
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: Colors.grey[200],
+
+                  color: const Color.fromARGB(255, 15, 0, 0),
+                  
                   borderRadius: BorderRadius.circular(12),
                 ),
 
@@ -89,7 +91,7 @@ class _PlacesScreenState extends State<PlacesScreen> {
                         Text(w.cityName,
                             style: const TextStyle(
                                 fontSize: 22, fontWeight: FontWeight.bold)),
-                        Text("${w.temperature}°C"),
+                        Text("${w.temperature.round()}°C"),
                         Text(w.conditionText),
                       ],
                     ),

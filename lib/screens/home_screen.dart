@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:weather_app/models/Weather.dart';
+import 'package:weather_app/providers/weather_provider.dart';
 import 'package:weather_app/services/WeatherService.dart';
 import 'package:weather_app/widgets/app_drawer.dart';
 
@@ -16,70 +18,60 @@ class _HomeScreenState extends State<HomeScreen> {
   late Future<Weather?> weatherFuture;
 
   @override
-  void initState() {
-    super.initState();
-
-     weatherFuture = service.getWeather("London");
-  }
-
-  @override
   Widget build(BuildContext context) {
+    final provider = context.watch<WeatherProvider>();
+
     return Scaffold(
       drawer: const AppDrawer(),
       appBar: AppBar(
         title: const Text("Weather App"),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.refresh),
+            onPressed: () {
+              context.read<WeatherProvider>().fetchWeather("hebron");
+            },
+          ),
+        ],
       ),
 
-      body: FutureBuilder<Weather?>(
-        future: weatherFuture,
-        builder: (context, snapshot) {
-          
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          }
-
-          if (!snapshot.hasData || snapshot.data == null) {
-            return const Center(child: Text("Error loading weather"));
-          }
-
-          Weather weather = snapshot.data!;
-
-          return Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                
-                Text(
-                  weather.cityName,
-                  style: const TextStyle(fontSize: 32, fontWeight: FontWeight.bold),
-                ),
-
-                const SizedBox(height: 25),
-
-                Image.network(
-                  weather.iconUrl,
-                  width: 90,
-                  height: 90,
-                ),
-
-                const SizedBox(height: 25),
-
-                Text(
-                  "${weather.temperature}°C",
-                  style: const TextStyle(fontSize: 40, fontWeight: FontWeight.bold),
-                ),
-
-                const SizedBox(height: 10),
-
-                Text(
-                  weather.conditionText,
-                  style: const TextStyle(fontSize: 20),
-                ),
-              ],
+      body: provider.isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : provider.weather == null
+          ? const Center(child: Text("Error loading weather"))
+          : Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    provider.weather!.cityName,
+                    style: const TextStyle(
+                      fontSize: 32,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 25),
+                  Image.network(
+                    provider.weather!.iconUrl,
+                    width: 150,
+                    height: 150,
+                  ),
+                  const SizedBox(height: 25),
+                  Text(
+                    "${provider.weather!.temperature.round()}°C",
+                    style: const TextStyle(
+                      fontSize: 40,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  Text(
+                    provider.weather!.conditionText,
+                    style: const TextStyle(fontSize: 20),
+                  ),
+                ],
+              ),
             ),
-          );
-        },
-      ),
     );
   }
 }
