@@ -25,4 +25,26 @@ class WeatherService {
       return null;
     }
   }
+
+  // ✅ NEW: get weather by GPS (lat,lon)
+  Future<Weather?> getWeatherByLocation(double lat, double lon) async {
+    try {
+      final url = Uri.parse(
+        "http://api.weatherapi.com/v1/current.json?key=$apiKey&q=$lat,$lon&aqi=no",
+      );
+
+      final response = await http.get(url);
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        return Weather.fromJson(data);
+      } else {
+        print("Error: ${response.statusCode}");
+        return null;
+      }
+    } catch (e) {
+      print("Exception: $e");
+      return null;
+    }
+  }
 }

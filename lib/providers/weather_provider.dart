@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:weather_app/models/Weather.dart';
 import 'package:weather_app/services/WeatherService.dart';
 
@@ -7,14 +8,98 @@ class WeatherProvider extends ChangeNotifier {
 
   Weather? weather;
   bool isLoading = false;
+  String? error;
 
-  Future<void> fetchWeather(String city) async {
+  // (اختياري) نحتفظ بآخر موقع لاستخدامه بالـ refresh
+  double? lastLat;
+  double? lastLon;
+
+  // ✅ weather by city (لو بدك)
+  Future<void> fetchWeatherByCity(String city) async {
     isLoading = true;
+    error = null;
     notifyListeners();
 
-    weather = await service.getWeather(city);
+    try {
+      weather = await service.getWeather(city);
+      if (weather == null) error = "Could not load weather.";
+    } catch (e) {
+      error = e.toString();
+    }
 
     isLoading = false;
     notifyListeners();
+  }
+
+  // ✅ weather by GPS
+  Future<void> fetchWeatherByGPS() async {
+    isLoading = true;
+    error = null;
+    notifyListeners();
+
+    try {
+      final ok = await _ensureLocationPermission();
+      if (!ok) {
+        error = "Location permission denied.";
+        isLoading = false;
+        notifyListeners();
+        return;
+      }
+
+      final pos = await Geolocator.getCurrentPosition(
+        desiredAccuracy: LocationAccuracy.high,
+      );
+
+      lastLat = pos.latitude;
+      lastLon = pos.longitude;
+
+      weather = await service.getWeatherByLocation(lastLat!, lastLon!);
+      if (weather == null) error = "Could not load weather.";
+    } catch (e) {
+      error = e.toString();
+    }
+
+    isLoading = false;
+    notifyListeners();
+  }
+
+  // ✅ refresh (يعيد جلب الطقس حسب آخر GPS)
+  Future<void> refresh() async {
+    if (lastLat != null && lastLon != null) {
+      isLoading = true;
+      error = null;
+      notifyListeners();
+
+      try {
+        weather = await service.getWeatherByLocation(lastLat!, lastLon!);
+        if (weather == null) error = "Could not load weather.";
+      } catch (e) {
+        error = e.toString();
+      }
+
+      isLoading = false;
+      notifyListeners();
+    } else {
+      // إذا ما في GPS لسه، جيبه أول مرة
+      await fetchWeatherByGPS();
+    }
+  }
+
+  Future<bool> _ensureLocationPermission() async {
+    bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+    if (!serviceEnabled) return false;
+
+    LocationPermission permission = await Geolocator.checkPermission();
+
+    if (permission == LocationPermission.denied) {
+      permission = await Geolocator.requestPermission();
+    }
+
+    if (permission == LocationPermission.deniedForever) {
+      return false;
+    }
+
+    return permission == LocationPermission.whileInUse ||
+        permission == LocationPermission.always;
   }
 }
