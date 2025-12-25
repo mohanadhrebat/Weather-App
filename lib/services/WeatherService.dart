@@ -5,43 +5,36 @@ import 'package:weather_app/models/Weather.dart';
 class WeatherService {
   final String apiKey = "bfc6402dbc134266bf2150452253011";
 
-  Future<Weather?> getWeather(String cityName) async {
+  // طقس حالي - query ممكن اسم مدينة أو "lat,lon"
+  Future<Weather?> getWeather(String query) async {
     try {
       final url = Uri.parse(
-        "http://api.weatherapi.com/v1/current.json?key=$apiKey&q=$cityName&aqi=no",
+        "http://api.weatherapi.com/v1/current.json?key=$apiKey&q=$query&aqi=no",
       );
-
       final response = await http.get(url);
-
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
         return Weather.fromJson(data);
-      } else {
-        print("Error: ${response.statusCode}");
-        return null;
       }
+      return null;
     } catch (e) {
       print("Exception: $e");
       return null;
     }
   }
 
-  // ✅ NEW: get weather by GPS (lat,lon)
-  Future<Weather?> getWeatherByLocation(double lat, double lon) async {
+  // توقعات - query ممكن اسم مدينة أو "lat,lon"
+  Future<ForecastWeather?> getForecast(String query, {int days = 3}) async {
     try {
       final url = Uri.parse(
-        "http://api.weatherapi.com/v1/current.json?key=$apiKey&q=$lat,$lon&aqi=no",
+        "http://api.weatherapi.com/v1/forecast.json?key=$apiKey&q=$query&days=$days&aqi=no",
       );
-
       final response = await http.get(url);
-
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
-        return Weather.fromJson(data);
-      } else {
-        print("Error: ${response.statusCode}");
-        return null;
+        return ForecastWeather.fromJson(data);
       }
+      return null;
     } catch (e) {
       print("Exception: $e");
       return null;

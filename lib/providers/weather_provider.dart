@@ -10,11 +10,10 @@ class WeatherProvider extends ChangeNotifier {
   bool isLoading = false;
   String? error;
 
-  // (اختياري) نحتفظ بآخر موقع لاستخدامه بالـ refresh
   double? lastLat;
   double? lastLon;
 
-  // ✅ weather by city (لو بدك)
+  // ✅ weather by city
   Future<void> fetchWeatherByCity(String city) async {
     isLoading = true;
     error = null;
@@ -53,7 +52,8 @@ class WeatherProvider extends ChangeNotifier {
       lastLat = pos.latitude;
       lastLon = pos.longitude;
 
-      weather = await service.getWeatherByLocation(lastLat!, lastLon!);
+      // ✅ استخدام getWeather مع GPS كـ string
+      weather = await service.getWeather("$lastLat,$lastLon");
       if (weather == null) error = "Could not load weather.";
     } catch (e) {
       error = e.toString();
@@ -63,7 +63,7 @@ class WeatherProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  // ✅ refresh (يعيد جلب الطقس حسب آخر GPS)
+  // ✅ refresh
   Future<void> refresh() async {
     if (lastLat != null && lastLon != null) {
       isLoading = true;
@@ -71,7 +71,7 @@ class WeatherProvider extends ChangeNotifier {
       notifyListeners();
 
       try {
-        weather = await service.getWeatherByLocation(lastLat!, lastLon!);
+        weather = await service.getWeather("$lastLat,$lastLon");
         if (weather == null) error = "Could not load weather.";
       } catch (e) {
         error = e.toString();
@@ -80,7 +80,6 @@ class WeatherProvider extends ChangeNotifier {
       isLoading = false;
       notifyListeners();
     } else {
-      // إذا ما في GPS لسه، جيبه أول مرة
       await fetchWeatherByGPS();
     }
   }
