@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
-import 'package:url_launcher/url_launcher.dart';
 import 'package:weather_app/services/notification_service.dart';
 import '../widgets/app_drawer.dart';
 import '../services/WeatherService.dart';
